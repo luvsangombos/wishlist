@@ -1,6 +1,7 @@
 package projects.wishlist.config.security;
 
 import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import io.jsonwebtoken.Jwts;
@@ -10,8 +11,12 @@ import java.util.Date;
 @Component
 public class JwtUtil {
 
-    private final String jwtSecret = "yourSuperSecureSecretKeyThatIsLongEnough123"; // Use env/config in real apps
-    private final long jwtExpirationMs = 86400000; // 1 day
+    @Value("${jwt.secret}")
+    private String jwtSecret;
+    // Use env/config in real apps
+
+    @Value("${jwt.expire}")
+    private long jwtExpirationMs; // 1 day
 
     public String generateToken(UserDetails userDetails) {
         return Jwts.builder()

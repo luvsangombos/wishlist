@@ -8,14 +8,12 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import projects.wishlist.config.security.JwtUtil;
 import projects.wishlist.dto.auth.JwtResponse;
 import projects.wishlist.dto.auth.LoginRequest;
 import projects.wishlist.dto.auth.SignUpRequest;
+import projects.wishlist.dto.auth.SignUpResponse;
 import projects.wishlist.model.User;
 import projects.wishlist.service.UserService;
 import projects.wishlist.service.impl.CustomUserDetailService;
@@ -42,12 +40,19 @@ public class AuthController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+
+    @GetMapping("/public")
+    public ResponseEntity<String> waitTenSeconds() throws InterruptedException {
+        Thread.sleep(3000);
+        return ResponseEntity.ok("Successfully waited 10 seconds");
+    }
+
     @PostMapping("/signup")
-    public ResponseEntity<String> registerUser(@RequestBody SignUpRequest request) {
+    public ResponseEntity<?> registerUser(@RequestBody SignUpRequest request) {
         if (userService.existsByUsername(request.username())) {
-            return ResponseEntity.badRequest().body("Username already taken");
+            return ResponseEntity.badRequest().body(new SignUpResponse(HttpStatus.BAD_REQUEST, "Username is already in use"));
         }
-        System.out.println(request.role());
+
         User user = User.builder()
                 .username(request.username())
                 .password(passwordEncoder.encode(request.password()))
@@ -56,22 +61,21 @@ public class AuthController {
 
         userService.save(user);
 
-        return ResponseEntity.ok("User registered successfully");
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.username(), request.password())
+        );
+        UserDetails userDetails = customUserDetailService.loadUserByUsername(request.username());
+        String token = jwtUtil.generateToken(userDetails);
+        return ResponseEntity.ok(new JwtResponse(token));
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
-        try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.username(), request.password())
             );
             UserDetails userDetails = customUserDetailService.loadUserByUsername(request.username());
             String token = jwtUtil.generateToken(userDetails);
             return ResponseEntity.ok(new JwtResponse(token));
-        } catch (BadCredentialsException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
-        }
     }
-
-
 }

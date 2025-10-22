@@ -2,9 +2,12 @@ package projects.wishlist.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import projects.wishlist.error.custom.UserNotFoundException;
 import projects.wishlist.model.User;
 import projects.wishlist.repository.FriendsRepository;
 import projects.wishlist.repository.UserRepository;
+
+import java.util.Optional;
 
 
 @Service
@@ -35,7 +38,12 @@ public class UserService implements projects.wishlist.service.UserService {
 
     @Override
     public User findByUserName(String username) {
-        return this.userRepository.findUserByUsername(username);
+        Optional<User> user = this.userRepository.findUserByUsername(username);
+        if(user.isPresent()) {
+            return user.get();
+        }else {
+            throw new UserNotFoundException("User not found");
+        }
     }
 
 
