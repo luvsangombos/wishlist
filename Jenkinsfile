@@ -18,16 +18,30 @@ pipeline {
       }
     }
 
-    stage('Build') {
+    stage('Build & Deploy') {
       steps {
-        sh 'docker-compose build'
+        dir('wishlist_compose') {
+          sh '''
+            export DB_USER=$DB_USER
+            export DB_PASS=$DB_PASS
+            export DB_URL=$DB_URL
+            export JWT_SECRET=$JWT_SECRET
+            export JWT_EXPIRE=$JWT_EXPIRE
+            export MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
+
+            docker-compose build
+            docker-compose down
+            docker-compose up -d
+          '''
+        }
       }
     }
 
-    stage('Deploy') {
+    stage('Logs') {
       steps {
-        sh 'docker-compose down'
-        sh 'docker-compose up -d'
+        dir('wishlist_compose') {
+          sh 'docker-compose logs --tail=100'
+        }
       }
     }
   }
