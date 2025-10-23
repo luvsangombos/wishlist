@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  wishlist:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: wishlist-app
+    ports:
+      - "3000:8080"
+    environment:
+      DB_URL: ${DB_URL}
+      DB_USER: ${DB_USER}
+      DB_PASS: ${DB_PASS}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRE: ${JWT_EXPIRE}
+    depends_on:
+      - db
+    restart: always
+
+  db:
+    image: mysql:8
+    container_name: db
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_DATABASE: wishlist
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASS}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+    restart: always
+
+volumes:
+  db_data:
