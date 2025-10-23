@@ -1,5 +1,8 @@
 package projects.wishlist.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -46,6 +49,11 @@ public class AuthController {
         Thread.sleep(3000);
         return ResponseEntity.ok("Successfully waited 10 seconds");
     }
+    @Operation(summary = "Sign up for new users")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "User created successfully"),
+            @ApiResponse(responseCode = "400", description = "Username already exist")
+    })
 
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@RequestBody SignUpRequest request) {
@@ -61,14 +69,15 @@ public class AuthController {
 
         userService.save(user);
 
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.username(), request.password())
-        );
-        UserDetails userDetails = customUserDetailService.loadUserByUsername(request.username());
-        String token = jwtUtil.generateToken(userDetails);
-        return ResponseEntity.ok(new JwtResponse(token));
+        return ResponseEntity.ok(new SignUpResponse(HttpStatus.CREATED, "User created successfully"));
     }
 
+
+    @Operation(summary = "Log in for user")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "returns jwt token"),
+            @ApiResponse(responseCode = "401", description = "User not found")
+    })
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
             authenticationManager.authenticate(
@@ -78,4 +87,5 @@ public class AuthController {
             String token = jwtUtil.generateToken(userDetails);
             return ResponseEntity.ok(new JwtResponse(token));
     }
+
 }

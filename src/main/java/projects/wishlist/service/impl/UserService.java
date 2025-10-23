@@ -2,7 +2,9 @@ package projects.wishlist.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import projects.wishlist.dto.user.CompleteProfileDto;
 import projects.wishlist.error.custom.UserNotFoundException;
+import projects.wishlist.model.ProfileStatus;
 import projects.wishlist.model.User;
 import projects.wishlist.repository.FriendsRepository;
 import projects.wishlist.repository.UserRepository;
@@ -44,6 +46,20 @@ public class UserService implements projects.wishlist.service.UserService {
         }else {
             throw new UserNotFoundException("User not found");
         }
+    }
+
+    @Override
+    public User update(String username, CompleteProfileDto profile) {
+        User user = this.userRepository.findUserByUsername(username).orElseThrow(() -> new UserNotFoundException("User not found"));
+        user.setEmail(profile.email());
+        user.setFirstName(profile.firstName());
+        user.setLastName(profile.lastName());
+        user.setPhoneNumber(profile.phone());
+        user.setBirthDate(profile.dateOfBirth());
+        user.setProfileImg(profile.profileImg());
+        user.setProfileStatus(ProfileStatus.COMPLETED);
+        this.userRepository.save(user);
+        return user;
     }
 
 
