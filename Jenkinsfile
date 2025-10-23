@@ -20,7 +20,6 @@ pipeline {
 
     stage('Build & Deploy') {
       steps {
-        dir('wishlist_compose') {
           sh '''
             export DB_USER=$DB_USER
             export DB_PASS=$DB_PASS
@@ -33,15 +32,12 @@ pipeline {
             docker-compose down
             docker-compose up -d
           '''
-        }
       }
     }
 
     stage('Logs') {
       steps {
-        dir('wishlist_compose') {
           sh 'docker-compose logs --tail=100'
-        }
       }
     }
   }
